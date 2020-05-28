@@ -1,26 +1,58 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import {Grid} from '@material-ui/core';
+import Youtube from './api/youtube';
+import {SearchBar,VideoList,VideoDetail} from './components';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends React.Component{
+
+    state={
+        videos:[],
+        selectedVideo:null
+    }
+
+    handleSubmit= async (searchTerm)=>{
+        
+        const response=await Youtube.get('search',{
+            params:{
+                part:'snippet',
+                maxResults:5,
+                key:process.env.REACT_APP_API_KEY,
+                q:searchTerm
+            }
+        });
+        
+        this.setState({videos:response.data.items,selectedVideo:response.data.items[0]})
+        
+    }
+    componentDidMount(){
+        this.handleSubmit("javscript");
+    }
+    onVideoSelect=(video)=>{
+        
+        this.setState({selectedVideo:video});
+    }
+
+    render(){
+        const {selectedVideo,videos}=this.state;
+        return(
+            <Grid container spacing={10} justify="center">
+                <Grid item xs={12}>
+                    <Grid container spacing={10}>
+                        <Grid item xs={12}>
+                            <SearchBar onFormSubmit={this.handleSubmit}/>
+                        </Grid>
+                        <Grid item xs={8}>
+                            <VideoDetail video={selectedVideo}/>
+                        </Grid>
+                        <Grid item xs={4}>
+                            <VideoList VideoList={videos} onVideoSelect={this.onVideoSelect}/>
+                        </Grid>
+                    </Grid>
+
+                </Grid>
+            </Grid>
+        )
+    }
 }
 
 export default App;
